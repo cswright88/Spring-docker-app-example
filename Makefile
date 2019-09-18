@@ -1,27 +1,13 @@
-.DEFAULT_GOAL:=help
+clean/package: ## Clean and reinstall/package java artifacts
+	./mvnw clean install package
 
-PWD=$(shell pwd)
-COMMIT_HASH=$(shell git rev-parse --short HEAD)
-POM_VERSION=$(shell xmllint --xpath "//*[local-name()='project']/*[local-name()='version']/text()" pom.xml)
+docker/image: ## build both images for docker compose
+	docker build -f Dockerfile -f Dockerfile -t demovideo .
+	@echo ****************** MADE SPRING IMAGE ******************
+	docker build -f Dockerfile-mysql -t my-mysql .
+	@echo ****************** MADE MYSQL IMAGE ******************
 
-# DOCKER_REPO?=510938208627.dkr.ecr.us-east-1.amazonaws.com/talroo
-APP_NAME=demo
-ECR_URL?=$(DOCKER_REPO)/$(APP_NAME)
-TAG?=$(COMMIT_HASH)
-
-JAR_FILE=target/$(APP_NAME)-$(POM_VERSION).jar
-
-docker/up: ## Start Docker services
-	docker-compose up -d mysql
-	@echo Waiting for MySQL to start
-	@sleep 10
-	./mvnw flyway:migrate
-
-docker/build: target/demo-*.jar ## Build Docker image
-	docker build --build-arg JAR_FILE=$(JAR_FILE) -t $(APP_NAME):$(TAG) .
-
-docker/down: ## Stop Docker services
-	docker-compose down
-
-docker/run: docker/build ## Run the app using Docker
+docker/up: ## start the image using docker-compose
 	docker-compose up demo
+
+docker/reload: clean/package docker/image docker/up

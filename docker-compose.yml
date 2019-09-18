@@ -1,0 +1,28 @@
+version: "3"
+services:
+  demo:
+    container_name: demo
+    image: demovideo
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:80:80"
+    environment:
+      - DATASOURCE_HOST=db
+      - DATASOURCE_PORT=3306
+      - DATASOURCE_USER=root
+      - DATASOURCE_PASSWORD=supersecret
+      - DATASOURCE_DATABASE=test
+    depends_on:
+      - db
+    tty: true
+  db:
+    container_name: db
+    image: my-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_HOST=localhost
+      - MYSQL_ROOT_USER=root
+      - MYSQL_ROOT_PASSWORD=supersecret
+      - MYSQL_DATABASE=test
+    restart: unless-stopped
